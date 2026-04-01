@@ -21,11 +21,10 @@ window.VLT_SYNC = (() => {
   }
   function saveHistory(list){ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }
 
-  function mergeById(a=[], b=[]){
-    const map = new Map(a.map(x => [x.id, x]));
-    for (const it of b) if (it && it.id) map.set(it.id, it);
-    return [...map.values()].sort((x,y)=>(x.savedAt||0)-(y.savedAt||0));
-  }
+  // sync.js の中
+function mergeById(a=[], b=[]){
+  return [...b].sort((x, y) => (x.savedAt || 0) - (y.savedAt || 0));
+}
 
   function setStatus(s){
     localStorage.setItem(STATUS_KEY, s);
@@ -33,16 +32,19 @@ window.VLT_SYNC = (() => {
     if (el) el.textContent = s;
   }
 
+  // sync.js 内の initFromUrl 関数を以下のように修正
   function initFromUrl(){
-    try{
+    try {
       const u = new URL(location.href);
       const c = normalizeCode(u.searchParams.get("code") || "");
       if (c && c.length >= 4){
-        setCode(c);
+        setCode(c); // localStorageに保存
         setStatus(`同期: ON（code=${c}）`);
       }
-    }catch{}
-  }
+    } catch(e) {
+      console.error("URLからのコード取得に失敗", e);
+    }
+}
 
   async function apiDownload(code){
     const res = await fetch(`/sync/${code}`);
@@ -136,24 +138,38 @@ window.VLT_SYNC = (() => {
     };
   }
 
-  function start(){
-    initFromUrl();
-    const code = getCode();
-    if (!code) setStatus("同期: code未設定（QRで設定）");
-
-    pullOnce("init");
-    connectSSE();
-
-    if (timer) clearInterval(timer);
-    timer = setInterval(() => {
-      if (document.visibilityState === "visible") pullOnce("interval");
-    }, 20000);
-
-    window.addEventListener("focus", () => pullOnce("focus"));
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") pullOnce("visible");
-    });
+  // sync.js の start 関数をこれに差し替え
+function start() {
+  // 1. URLにコードがあればそれを最優先で保存
+  const u = new URL(location.href);
+  const urlCode = normalizeCode(u.searchParams.get("code") || "");
+  if (urlCode && urlCode.length >= 4) {
+    setCode(urlCode);
   }
+
+  // 2. それでもなければ既存のものを読み込む
+  const code = getCode();
+  if (code) {
+    setStatus(`同期: ON（code=${code}）`);
+    // URLにコードがなければ付け足す
+    if (u.searchParams.get("code") !== code) {
+      u.searchParams.set("code", code);
+      window.history.replaceState({}, '', u.href);
+    }
+  } else {
+    setStatus("同期: code未設定（QRで設定）");
+  }
+
+  pullOnce("init");
+  connectSSE();
+
+  // 20秒おきにチェック（念のため）
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    if (document.visibilityState === "visible") pullOnce("interval");
+  }, 20000);
+}
+
 
   return { start, pullOnce, pushOnce, getCode, setCode, connectSSE };
 })();

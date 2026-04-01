@@ -27,8 +27,6 @@ function moneySumForDay(dayItems){
   return sum;
 }
 function sleepHoursForDay(dayItems){
-  const sleepRec = dayItems.find(x=>x.type==="sleep" && typeof x.sleepHours==="number");
-  if (sleepRec) return sleepRec.sleepHours;
   const diaryWithSleep = dayItems.find(x=>x.type==="diary" && typeof x.health?.sleepHours==="number");
   return diaryWithSleep ? diaryWithSleep.health.sleepHours : null;
 }
@@ -84,22 +82,35 @@ function ensureSelectOptions(){
     monthSelect.appendChild(opt);
   }
 }
+
 function setCursor(y, m1to12){
   cursor = new Date(y, m1to12-1, 1);
   yearSelect.value = String(y);
   monthSelect.value = String(m1to12);
 }
 
+// ★最重要：同期と連動した削除関数
 async function deleteById(id){
   if (!confirm("この記録を削除しますか？")) return;
+  
+  // 1. 現在の履歴を取得し、対象を消す
   const hist = loadHistory();
-  const next = hist.filter(x=>x.id !== id);
+  const next = hist.filter(x => x.id !== id);
+  
+  // 2. ローカルに保存
   saveHistory(next);
-  try{
-    if (window.VLT_SYNC?.pushOnce) await window.VLT_SYNC.pushOnce("calendar_delete");
-  }catch(e){
-    console.warn(e);
+  
+  // 3. 【修正】サーバーに「消した後の全データ」を即座に同期する
+  if (window.VLT_SYNC) {
+    try {
+      // 第一引数に最新のデータリスト(next)を渡すのがポイント
+      await window.VLT_SYNC.pushOnce(next, "calendar_delete");
+    } catch(e) {
+      console.warn("同期失敗:", e);
+    }
   }
+  
+  // 4. 画面を再描画
   rebuildIndex();
   renderCalendar();
   if (selected) renderDayDetail(selected);
@@ -128,19 +139,15 @@ function renderCalendar(){
     const d = new Date(y, m, daysInMonth + (cells.length - (startDow + daysInMonth)) + 1);
     cells.push({ date: isoDate(d), dayNum: d.getDate(), muted: true });
   }
-  while (cells.length < 42){
-    const lastCellDate = parseISO(cells[cells.length-1].date);
-    const d = new Date(lastCellDate.getFullYear(), lastCellDate.getMonth(), lastCellDate.getDate()+1);
-    cells.push({ date: isoDate(d), dayNum: d.getDate(), muted: true });
-  }
 
   calBody.innerHTML = "";
   const today = isoDate(new Date());
 
-  for (let r=0;r<6;r++){
+  for (let r=0; r < Math.ceil(cells.length / 7); r++){
     const tr = document.createElement("tr");
     for (let c=0;c<7;c++){
       const cell = cells[r*7+c];
+      if (!cell) break;
       const td = document.createElement("td");
       if (cell.muted) td.classList.add("muted");
       if (cell.date === today) td.classList.add("today");
@@ -153,35 +160,25 @@ function renderCalendar(){
       dayNum.className = "day-num";
       dayNum.textContent = String(cell.dayNum);
 
-      const dot = document.createElement("div");
-      dot.className = "dot";
-
       const badges = document.createElement("div");
       badges.className = "badges";
       if (items.length){
         const diaryCount = items.filter(x=>x.type==="diary").length;
-        const sleepCount = items.filter(x=>x.type==="sleep").length;
-        const profileCount = items.filter(x=>x.type==="profile").length;
         const money = moneySumForDay(items);
         const sleepH = sleepHoursForDay(items);
 
         if (diaryCount) badges.appendChild(makeBadge(`日記 ${diaryCount}`));
-        if (sleepCount) badges.appendChild(makeBadge(`睡眠 ${sleepCount}`));
-        if (profileCount) badges.appendChild(makeBadge(`要約 ${profileCount}`));
-        if (money > 0) badges.appendChild(makeBadge(`支出 ${formatYen(money)}`));
-        if (sleepH != null) badges.appendChild(makeBadge(`睡眠 ${sleepH}h`));
+        if (money > 0) badges.appendChild(makeBadge(`${formatYen(money)}`));
+        if (sleepH != null) badges.appendChild(makeBadge(`${sleepH}h`));
       }
 
       td.appendChild(dayNum);
-      td.appendChild(dot);
       td.appendChild(badges);
-
       td.addEventListener("click", ()=>{
         selected = cell.date;
         renderCalendar();
         renderDayDetail(cell.date);
       });
-
       tr.appendChild(td);
     }
     calBody.appendChild(tr);
@@ -193,50 +190,37 @@ function renderDayDetail(dateStr){
   const items = (byDate.get(dateStr) || []).slice().sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
 
   if (!items.length){
-    dayDetail.className = "hint";
-    dayDetail.textContent = "この日の記録はありません。";
+    dayDetail.innerHTML = `<div class="hint">この日の記録はありません。</div>`;
     return;
   }
 
-  const wrap = document.createElement("div");
-
+  dayDetail.innerHTML = "";
   items.forEach(it=>{
     const card = document.createElement("div");
     card.className = "card";
-    card.style.marginTop = "10px";
+    
+    const typeLabel = it.type === "profile" ? "要約" : "日記";
+    const timeStr = it.savedAt ? new Date(it.savedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
 
-    const meta = document.createElement("div");
-    meta.className = "card-meta";
-    const left = document.createElement("div");
-    left.textContent = it.type === "sleep" ? "睡眠" : (it.type==="profile" ? "要約" : "日記");
-    const right = document.createElement("div");
-    right.textContent = it.savedAt ? new Date(it.savedAt).toLocaleString() : "";
-    meta.appendChild(left);
-    meta.appendChild(right);
-
-    const title = document.createElement("div");
-    title.className = "card-title";
-
-    if (it.type === "sleep"){
-      title.textContent = `睡眠：${it.sleepHours ?? "?"}h（動き:${it.moveCount ?? 0}）`;
-    } else if (it.type === "profile"){
-      title.textContent = `あなたの要約（この時点）`;
-    } else {
+    let contentHtml = "";
+    if (it.type === "diary") {
       const money = (it.finance?.expenses || []).reduce((a,x)=>a+(Number(x.amount)||0),0);
-      const sleepH = (typeof it.health?.sleepHours==="number") ? it.health.sleepHours : null;
-      const sy = Array.isArray(it.health?.symptoms) ? it.health.symptoms.join(" / ") : "";
-      title.textContent = `支出 ${formatYen(money)} / 睡眠 ${sleepH!=null? sleepH+"h":"未入力"} ${sy? " / 体調: "+sy:""}`;
+      const sleepH = it.health?.sleepHours || "-";
+      const sy = Array.isArray(it.health?.symptoms) ? it.health.symptoms.join(", ") : "";
+      contentHtml = `
+        <div class="card-title">${typeLabel} (${timeStr})</div>
+        <div class="card-meta">支出: ${formatYen(money)} / 睡眠: ${sleepH}h</div>
+        ${sy ? `<div class="card-meta">体調: ${sy}</div>` : ""}
+        <div class="card-text">${(it.cleanTranscript || it.rawTranscript || "").trim()}</div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="card-title">${typeLabel} (${timeStr})</div>
+        <div class="card-text">${(it.profileText || "").trim()}</div>
+      `;
     }
 
-    const text = document.createElement("div");
-    text.className = "card-text";
-    if (it.type === "sleep"){
-      text.textContent = `開始: ${it.startAt ? new Date(it.startAt).toLocaleString() : "?"}\n終了: ${it.endAt ? new Date(it.endAt).toLocaleString() : "?"}`;
-    } else if (it.type === "profile"){
-      text.textContent = (it.profileText || "").trim() || "（本文なし）";
-    } else {
-      text.textContent = (it.cleanTranscript || it.rawTranscript || "").trim() || "（本文なし）";
-    }
+    card.innerHTML = contentHtml;
 
     const actions = document.createElement("div");
     actions.className = "row";
@@ -245,29 +229,16 @@ function renderDayDetail(dateStr){
 
     const del = document.createElement("button");
     del.className = "btn-ghost btn-danger";
-    del.type = "button";
     del.textContent = "削除";
-    del.addEventListener("click", (ev)=>{
-      ev.stopPropagation();
-      deleteById(it.id);
-    });
+    del.onclick = () => deleteById(it.id);
 
     actions.appendChild(del);
-
-    card.appendChild(meta);
-    card.appendChild(title);
-    card.appendChild(text);
     card.appendChild(actions);
-
-    wrap.appendChild(card);
+    dayDetail.appendChild(card);
   });
-
-  dayDetail.className = "";
-  dayDetail.innerHTML = "";
-  dayDetail.appendChild(wrap);
 }
 
-// controls
+// --- イベント類 ---
 btnPrev.addEventListener("click", ()=>{
   const d = new Date(cursor.getFullYear(), cursor.getMonth()-1, 1);
   setCursor(d.getFullYear(), d.getMonth()+1);
@@ -286,20 +257,15 @@ btnToday.addEventListener("click", ()=>{
   renderDayDetail(selected);
 });
 btnRefresh.addEventListener("click", async ()=>{
-  if (window.VLT_SYNC) await window.VLT_SYNC.pullOnce("calendar_refresh");
-  rebuildIndex();
-  renderCalendar();
-  if (selected) renderDayDetail(selected);
-});
-yearSelect.addEventListener("change", ()=>{
-  setCursor(Number(yearSelect.value), Number(monthSelect.value));
-  renderCalendar();
-});
-monthSelect.addEventListener("change", ()=>{
-  setCursor(Number(yearSelect.value), Number(monthSelect.value));
-  renderCalendar();
+  if (window.VLT_SYNC) {
+    await window.VLT_SYNC.pullOnce("calendar_refresh");
+    rebuildIndex();
+    renderCalendar();
+    if (selected) renderDayDetail(selected);
+  }
 });
 
+// 初期化
 (async ()=>{
   ensureSelectOptions();
   if (window.VLT_SYNC){

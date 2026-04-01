@@ -128,11 +128,16 @@ function renderExpenses(){
       b.textContent = `${x.label || "支出"} ${formatYen(x.amount)} ×`;
       b.style.cursor = "pointer";
       b.title = "タップで削除";
-      b.addEventListener("click", ()=>{
-        expenses.splice(idx,1);
-        renderExpenses();
+      // record.js の中の削除処理（例：支出の削除ボタン）
+      b.addEventListener("click", () => {
+        expenses.splice(idx, 1); // 削除実行
+        renderExpenses();        // 画面更新
+
+        if (window.VLT_SYNC) {
+          const hist = loadHistory(); // 現在のローカル全データを取得
+          window.VLT_SYNC.pushOnce(hist, "delete_item");
+        }
       });
-      expenseList.appendChild(b);
     });
   }
   expenseSum.textContent = `合計: ${formatYen(sum)}`;
@@ -346,6 +351,12 @@ btnSave.addEventListener("click", async ()=>{
   hist.push(item);
   saveHistory(hist);
 
+  if (window.VLT_SYNC) {
+    await window.VLT_SYNC.pushOnce(hist, "record_save");
+  }
+
+  saveStatus.textContent = `保存しました（${date}）`;
+
   try{
     if (window.VLT_SYNC?.pushOnce) await window.VLT_SYNC.pushOnce("record_save");
   }catch(e){
@@ -393,17 +404,43 @@ function renderQR(){
   } catch {}
 }
 
-// init
-(async ()=>{
+
+// record.js の (async () => { ... })(); の中身をこれに差し替え
+(async () => {
   entryDate.value = isoToday();
+
+  // 1. sync.js側の準備を待つ
+  if (window.VLT_SYNC) {
+    window.VLT_SYNC.start();
+  }
+
+  // 2. 確定したコードを取得（なければここで1回だけ作る）
+  let code = window.VLT_SYNC.getCode();
+  if (!code) {
+    code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    window.VLT_SYNC.setCode(code);
+    // URLを更新
+    const url = new URL(window.location.href);
+    url.searchParams.set("code", code);
+    window.history.replaceState({}, '', url.href);
+  }
+
+  // 3. 【重要】全てのメニューリンクに今のコードを強制付与
+  document.querySelectorAll('.nav-link').forEach(link => {
+    const linkUrl = new URL(link.href, window.location.origin);
+    linkUrl.searchParams.set("code", code);
+    link.href = linkUrl.href;
+  });
+
   renderSymptoms();
   renderSelectedSymptoms();
   renderExpenses();
   setupSpeech();
-  renderQR();
+  
+  // 4. 正しいコードでQRを出す
+  if (typeof renderQR === "function") renderQR();
 
-  if (window.VLT_SYNC){
-    window.VLT_SYNC.start();
+  if (window.VLT_SYNC) {
     await window.VLT_SYNC.pullOnce("record_init");
   }
 })();
