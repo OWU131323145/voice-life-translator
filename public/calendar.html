@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VLT | カレンダー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Voice Life Translator</h1>
+        <div class="hint">日付から探して、当日の記録をまとめて確認できます。</div>
+      </div>
+      <div class="nav">
+        <a class="nav-link" href="record.html">記録</a>
+        <a class="nav-link active" href="calendar.html">カレンダー</a>
+        <a class="nav-link" href="chat.html">対話</a>
+        <a class="nav-link" href="sleep.html">睡眠</a>
+        <a class="nav-link" href="data.html">データ</a>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">カレンダー</div>
+            <div id="syncTinyStatus" class="hint"></div>
+          </div>
+          <button id="btnRefresh" class="btn-ghost" type="button">更新（同期）</button>
+        </div>
+
+        <div class="row" style="margin-bottom:10px;">
+          <button id="btnPrev" class="btn-ghost" type="button">◀ 前月</button>
+          <select id="yearSelect" class="input" style="max-width:140px;"></select>
+          <select id="monthSelect" class="input" style="max-width:120px;"></select>
+          <button id="btnNext" class="btn-ghost" type="button">次月 ▶</button>
+          <button id="btnToday" class="btn" type="button">今日</button>
+        </div>
+
+        <table class="calendar" aria-label="月間カレンダー">
+          <thead>
+            <tr>
+              <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+            </tr>
+          </thead>
+          <tbody id="calBody"></tbody>
+        </table>
+
+        <div class="hint" style="margin-top:8px;">
+          青い点＝その日に記録あり。タップで詳細が表示されます。
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">選択日の詳細</div>
+          <div class="hint" id="selectedDateLabel">未選択</div>
+        </div>
+        <div id="dayDetail" class="hint">カレンダーの日付をタップしてください。</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="sync.js"></script>
+  <script src="calendar.js"></script>
+</body>
+</html>

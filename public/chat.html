@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VLT | チャット</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .chat{ display:flex; flex-direction:column; gap:10px; max-height:52vh; overflow:auto; padding-right:2px; }
+    .bubble{
+      max-width: 92%;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:800;
+      white-space:pre-wrap;
+    }
+    .me{ margin-left:auto; background:var(--accent-weak); border-color:rgba(79,70,229,0.25); }
+    .ai{ margin-right:auto; }
+    .bubble .meta{ font-size:11px; color:var(--muted); font-weight:900; margin-bottom:6px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Voice Life Translator</h1>
+        <div class="hint">記録をもとに会話します（根拠の日付を示し、勝手に作りません）。</div>
+      </div>
+      <div class="nav">
+        <a class="nav-link" href="record.html">記録</a>
+        <a class="nav-link" href="calendar.html">カレンダー</a>
+        <a class="nav-link active" href="chat.html">対話</a>
+        <a class="nav-link" href="sleep.html">睡眠</a>
+        <a class="nav-link" href="data.html">データ</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">同期</div>
+          <div id="syncTinyStatus" class="hint"></div>
+        </div>
+        <div class="row">
+          <button id="btnSync" class="btn-ghost" type="button">更新（同期）</button>
+          <button id="btnClearChat" class="btn-ghost btn-danger" type="button">会話を消す</button>
+        </div>
+      </div>
+      <div class="badges">
+        <div class="badge" id="kpiEntries">記録: 0</div>
+        <div class="badge" id="kpiDays">日数: 0</div>
+        <div class="badge" id="kpiLast">最新: -</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">あなたの要約（育つプロフィール）</div>
+          <div class="hint">必要なら手で直してOK。より“あなたらしい返答”になります。</div>
+        </div>
+        <div class="row">
+          <button id="btnUpdateProfile" class="btn" type="button">要約を作る/更新</button>
+          <button id="btnSaveProfile" class="btn-ghost" type="button">保存</button>
+        </div>
+      </div>
+      <textarea id="profileText" class="input" rows="4" placeholder="（まだありません）"></textarea>
+      <div id="profileLoading" class="loading">作成中…</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">対話</div>
+          <div class="hint">質問すると、関係のある日記だけを参照して返します。</div>
+        </div>
+      </div>
+
+      <div id="chatLog" class="chat"></div>
+      <div class="chips" id="suggestChips"></div>
+
+      <div style="margin-top:12px;">
+        <textarea id="userInput" class="input" rows="3" placeholder="例：最近つらい原因の候補を整理して"></textarea>
+        <div class="row" style="margin-top:8px; justify-content:space-between;">
+          <div class="row">
+            <button id="btnVoice" class="btn-ghost" type="button">音声入力</button>
+            <span id="voiceState" class="hint"></span>
+          </div>
+          <button id="btnSend" class="btn" type="button">送信</button>
+        </div>
+        <div id="chatLoading" class="loading">考え中…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="sync.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>

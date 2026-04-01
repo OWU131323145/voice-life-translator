@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VLT | 睡眠</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sleep-big{
+      text-align:center;
+      padding:18px;
+    }
+    .sleep-time{
+      font-size:34px;
+      font-weight:1000;
+      letter-spacing:0.5px;
+      margin:10px 0;
+    }
+    .sleep-sub{
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+    }
+    .bigbtn{
+      width:100%;
+      padding:18px;
+      font-size:18px;
+      border-radius:18px;
+    }
+    .meter{
+      margin-top:10px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:900;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Voice Life Translator</h1>
+        <div class="hint">睡眠モード：置いて寝るだけ（動きをカウントします）。</div>
+      </div>
+      <div class="nav">
+        <a class="nav-link" href="record.html">記録</a>
+        <a class="nav-link" href="calendar.html">カレンダー</a>
+        <a class="nav-link" href="chat.html">対話</a>
+        <a class="nav-link active" href="sleep.html">睡眠</a>
+        <a class="nav-link" href="data.html">データ</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">同期</div>
+          <div id="syncTinyStatus" class="hint"></div>
+        </div>
+        <button id="btnSync" class="btn-ghost" type="button">更新（同期）</button>
+      </div>
+
+      <div class="control" style="max-width:320px;">
+        <label>記録する日（任意）</label>
+        <input id="sleepDate" class="input" type="date">
+        <div class="hint" style="margin-top:6px;">未指定なら、開始日の「日付」で保存します。</div>
+      </div>
+    </div>
+
+    <div class="panel sleep-big">
+      <div class="panel-title">睡眠モード</div>
+      <div class="sleep-sub" id="stateText">停止中</div>
+      <div class="sleep-time" id="timer">00:00:00</div>
+
+      <div class="row" style="justify-content:center;">
+        <button id="btnStart" class="btn bigbtn" type="button">睡眠モードを開始</button>
+        <button id="btnStop" class="btn-ghost bigbtn" type="button" disabled>終了して保存</button>
+      </div>
+
+      <div class="meter">
+        動きカウント: <span id="moveCount">0</span>
+        <div class="hint" style="margin-top:6px;">加速度が大きく動いた回数の目安です（簡易）。</div>
+      </div>
+
+      <div class="hint" id="saveMsg" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script src="sync.js"></script>
+  <script src="sleep.js"></script>
+</body>
+</html>
