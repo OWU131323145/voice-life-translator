@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VLT | 記録</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Voice Life Translator</h1>
+        <div class="hint">話す → 整える → 保存。あとで見返せます。</div>
+      </div>
+      <div class="nav">
+        <a class="nav-link active" href="record.html">記録</a>
+        <a class="nav-link" href="calendar.html">カレンダー</a>
+        <a class="nav-link" href="chat.html">対話</a>
+        <a class="nav-link" href="sleep.html">睡眠</a>
+        <a class="nav-link" href="data.html">データ</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">更新（同期）</div>
+          <div id="syncTinyStatus" class="hint"></div>
+        </div>
+        <button id="btnSync" class="btn-ghost" type="button">更新</button>
+      </div>
+
+      <div class="row" style="align-items:flex-start;">
+        <div class="control" style="flex:1; min-width:260px;">
+          <label>記録する日</label>
+          <input id="entryDate" class="input" type="date">
+          <div class="hint" style="margin-top:6px;">過去の日付も選べます。</div>
+        </div>
+
+        <!-- QR：PCのみ -->
+        <div class="only-desktop" style="min-width:260px;">
+          <div class="hint">スマホで開く（QR）</div>
+          <div id="qr" class="card" style="display:inline-block; padding:10px; margin-top:6px;"></div>
+          <div class="hint" id="qrText" style="margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">本文</div>
+          <div class="hint">短くでOK。AIが読みやすく整えて、体調・支出も拾います。</div>
+        </div>
+        <div class="row">
+          <button id="btnVoice" class="btn-ghost" type="button">音声入力</button>
+          <button id="btnClean" class="btn" type="button">整えて自動入力</button>
+        </div>
+      </div>
+
+      <textarea id="rawText" class="input" rows="5" placeholder="例：頭が痛い。コンビニで薬980円買った。早めに寝たい。"></textarea>
+      <div id="cleanLoading" class="loading">処理中…</div>
+
+      <div style="margin-top:10px;">
+        <div class="hint">整えた文章（編集OK）</div>
+        <textarea id="cleanText" class="input" rows="5" placeholder="（整えた文章がここに表示されます）"></textarea>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">写真から入力（任意）</div>
+          <div class="hint">レシート/体温計/薬/メモなどを撮って読み取れます。</div>
+        </div>
+        <button id="btnVision" class="btn-ghost" type="button">写真を読み取る</button>
+      </div>
+
+      <input id="photoInput" class="input" type="file" accept="image/*" multiple>
+      <div id="visionLoading" class="loading">画像を解析中…</div>
+      <div class="hint" style="margin-top:8px;">※最大3枚まで。内容は“推測”なので、必要なら直してください。</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">体調と睡眠（自動でも手でもOK）</div>
+          <div class="hint">忘れがちな項目は、本文/写真から自動入力します。</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="control" style="flex:1;">
+          <label>睡眠時間（任意）</label>
+          <input id="sleepHours" class="input" type="number" min="0" max="24" step="0.5" placeholder="例：6.5">
+        </div>
+
+        <div class="control" style="flex:2;">
+          <label>体調（タップで追加）</label>
+          <div class="chips" id="symptomChips"></div>
+          <div id="symptomSelected" class="badges"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">支出（自動でも手でもOK）</div>
+          <div class="hint">本文から自動で追加できます。</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="control" style="flex:1;">
+          <label>内容</label>
+          <input id="expenseLabel" class="input" placeholder="例：薬 / コンビニ / 交通費">
+        </div>
+        <div class="control" style="flex:1;">
+          <label>金額（円）</label>
+          <input id="expenseAmount" class="input" type="number" min="0" step="1" placeholder="例：980">
+        </div>
+        <button id="btnAddExpense" class="btn-ghost" type="button">追加</button>
+      </div>
+
+      <div id="expenseList" class="badges" style="margin-top:8px;"></div>
+      <div class="hint" id="expenseSum" style="margin-top:6px;"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">保存</div>
+          <div class="hint">保存するとカレンダー／対話／データに反映されます。</div>
+        </div>
+        <div class="row">
+          <button id="btnSave" class="btn" type="button">保存</button>
+          <button id="btnReset" class="btn-ghost" type="button">入力をクリア</button>
+        </div>
+      </div>
+      <div id="saveStatus" class="hint"></div>
+    </div>
+
+  </div>
+
+  <script src="sync.js"></script>
+  <script src="record.js"></script>
+</body>
+</html>
