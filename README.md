@@ -95,12 +95,12 @@ AI・センサー・リアルタイム通信を統合した、マルチデバイ
 
 ```mermaid
 graph LR
-  A[音声 / 画像 / センサー] --> B[Frontend]
-  B --> C[Node.js API]
-  C --> D[OpenAI API]
+  A["Input (音声 / 画像 / センサー)"] --> B["Frontend"]
+  B --> C["API Layer (Node.js)"]
+  C --> D["LLM (OpenAI)"]
   D --> C
-  C --> E[Sync Layer (SSE)]
-  E --> F[Storage / UI / Visualization]
+  C --> E["Sync Layer (SSE)"]
+  E --> F["Storage / UI / Visualization"]
 ```
 
 ---
