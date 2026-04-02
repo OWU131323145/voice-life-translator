@@ -1,3 +1,6 @@
+/* =========================================
+ * 1. データストア・ユーティリティ
+ * ========================================= */
 const HISTORY_KEY = "vlt_history_v5";
 
 function loadHistory(){ try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");}catch{return[];} }
@@ -37,6 +40,9 @@ function makeBadge(text){
   return div;
 }
 
+/* =========================================
+ * 2. DOM取得と状態管理
+ * ========================================= */
 const calBody = document.getElementById("calBody");
 const yearSelect = document.getElementById("yearSelect");
 const monthSelect = document.getElementById("monthSelect");
@@ -53,6 +59,9 @@ let byDate = new Map();
 let cursor = new Date();
 let selected = null;
 
+/* =========================================
+ * 3. インデックス作成と補助関数
+ * ========================================= */
 function rebuildIndex(){
   history = loadHistory().slice().sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
   byDate = new Map();
@@ -89,7 +98,9 @@ function setCursor(y, m1to12){
   monthSelect.value = String(m1to12);
 }
 
-// ★最重要：同期と連動した削除関数
+/* =========================================
+ * 4. データの削除とカレンダー描画
+ * ========================================= */
 async function deleteById(id){
   if (!confirm("この記録を削除しますか？")) return;
   
@@ -100,7 +111,6 @@ async function deleteById(id){
   // 2. ローカルに保存
   saveHistory(next);
   
-  // 3. 【修正】サーバーに「消した後の全データ」を即座に同期する
   if (window.VLT_SYNC) {
     try {
       // 第一引数に最新のデータリスト(next)を渡すのがポイント
@@ -238,7 +248,9 @@ function renderDayDetail(dateStr){
   });
 }
 
-// --- イベント類 ---
+/* =========================================
+ * 5. イベントリスナーと初期化
+ * ========================================= */
 btnPrev.addEventListener("click", ()=>{
   const d = new Date(cursor.getFullYear(), cursor.getMonth()-1, 1);
   setCursor(d.getFullYear(), d.getMonth()+1);

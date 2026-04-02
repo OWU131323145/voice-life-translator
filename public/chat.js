@@ -1,3 +1,6 @@
+/* =========================================
+ * 1. データストア・ユーティリティ
+ * ========================================= */
 const HISTORY_KEY = "vlt_history_v5";
 const CHAT_KEY = "vlt_chat_v1";
 const PROFILE_KEY = "vlt_profile_v1";
@@ -32,7 +35,9 @@ async function callApi(prompt){
   return JSON.parse(txt).data;
 }
 
-// DOM
+/* =========================================
+ * 2. DOM要素の取得
+ * ========================================= */
 const chatLog = document.getElementById("chatLog");
 const suggestChips = document.getElementById("suggestChips");
 const userInput = document.getElementById("userInput");
@@ -53,7 +58,9 @@ const profileLoading = document.getElementById("profileLoading");
 const btnVoice = document.getElementById("btnVoice");
 const voiceState = document.getElementById("voiceState");
 
-// state
+/* =========================================
+ * 3. 状態管理と描画ロジック
+ * ========================================= */
 let history = [];
 let chat = [];
 let recognizing = false;
@@ -101,6 +108,9 @@ function setChips(chips){
   });
 }
 
+/* =========================================
+ * 4. AI対話（検索と推論）ロジック
+ * ========================================= */
 function pickCandidates(question){
   const tokens = tokenize(question);
   const items = loadHistory();
@@ -192,6 +202,9 @@ async function ask(question){
   }
 }
 
+/* =========================================
+ * 5. プロフィール要約生成ロジック
+ * ========================================= */
 function buildProfilePrompt(items){
   const diaries = items.filter(x=>x.type==="diary").slice(0, 20).map(it=>({
     date: it.date,
@@ -240,7 +253,9 @@ btnSaveProfile.addEventListener("click", ()=>{
   alert("保存しました。");
 });
 
-// voice input
+/* =========================================
+ * 6. 音声入力・各種イベント
+ * ========================================= */
 function setupSpeech(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR){
@@ -314,7 +329,9 @@ function defaultChips(){
   ];
 }
 
-// init
+/* =========================================
+ * 7. 初期化処理
+ * ========================================= */
 (function init(){
   if (window.VLT_SYNC) window.VLT_SYNC.start();
   profileText.value = loadProfile();

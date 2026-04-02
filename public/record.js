@@ -1,3 +1,6 @@
+/* =========================================
+ * 1. データストア・ユーティリティ
+ * ========================================= */
 const HISTORY_KEY = "vlt_history_v5";
 
 function loadHistory(){
@@ -42,7 +45,9 @@ function uniqPush(arr, v){
   if (!arr.includes(v)) arr.push(v);
 }
 
-// DOM
+/* =========================================
+ * 2. DOM要素の取得
+ * ========================================= */
 const entryDate = document.getElementById("entryDate");
 const btnSync = document.getElementById("btnSync");
 
@@ -75,7 +80,9 @@ const saveStatus = document.getElementById("saveStatus");
 const qrBox = document.getElementById("qr");
 const qrText = document.getElementById("qrText");
 
-// state
+/* =========================================
+ * 3. 状態管理（ステート）
+ * ========================================= */
 let expenses = [];
 let symptoms = [];
 let recognition = null;
@@ -83,6 +90,9 @@ let recognizing = false;
 
 const SYMPTOMS = ["頭痛", "腹痛", "だるい", "眠い", "イライラ", "不安", "肩こり", "風邪っぽい", "発熱", "咳", "喉が痛い"];
 
+/* =========================================
+ * 4. UI描画関数（体調・支出）
+ * ========================================= */
 function renderSymptoms(){
   symptomChips.innerHTML = "";
   SYMPTOMS.forEach(s=>{
@@ -128,7 +138,6 @@ function renderExpenses(){
       b.textContent = `${x.label || "支出"} ${formatYen(x.amount)} ×`;
       b.style.cursor = "pointer";
       b.title = "タップで削除";
-      // record.js の中の削除処理（例：支出の削除ボタン）
       b.addEventListener("click", () => {
         expenses.splice(idx, 1); // 削除実行
         renderExpenses();        // 画面更新
@@ -156,7 +165,9 @@ btnAddExpense.addEventListener("click", ()=>{
   renderExpenses();
 });
 
-// ---- AI：整文＋抽出 ----
+/* =========================================
+ * 5. AI処理（テキストの整形と抽出）
+ * ========================================= */
 function buildCleanAndExtractPrompt(text){
   return `
 あなたは日記の編集者です。入力文を「意味を変えずに」読みやすい日本語に整えつつ、
@@ -232,7 +243,9 @@ btnClean.addEventListener("click", async ()=>{
   }
 });
 
-// ---- 画像認識 ----
+/* =========================================
+ * 6. AI処理（画像からの抽出）
+ * ========================================= */
 function fileToDataURL(file){
   return new Promise((resolve,reject)=>{
     const r = new FileReader();
@@ -286,7 +299,9 @@ btnVision.addEventListener("click", async ()=>{
   }
 });
 
-// ---- 音声入力 ----
+/* =========================================
+ * 7. 音声入力（Speech Recognition）
+ * ========================================= */
 function setupSpeech(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR){
@@ -323,7 +338,9 @@ btnVoice.addEventListener("click", ()=>{
   else recognition.stop();
 });
 
-// ---- 保存 ----
+/* =========================================
+ * 8. 保存・クリア・同期処理
+ * ========================================= */
 btnSave.addEventListener("click", async ()=>{
   const date = entryDate.value || isoToday();
   const raw = (rawText.value || "").trim();
@@ -351,16 +368,10 @@ btnSave.addEventListener("click", async ()=>{
   hist.push(item);
   saveHistory(hist);
 
-  if (window.VLT_SYNC) {
-    await window.VLT_SYNC.pushOnce(hist, "record_save");
-  }
-
-  saveStatus.textContent = `保存しました（${date}）`;
-
-  try{
-    if (window.VLT_SYNC?.pushOnce) await window.VLT_SYNC.pushOnce("record_save");
-  }catch(e){
-    console.warn("pushOnce not available / failed:", e);
+  try {
+    if (window.VLT_SYNC) await window.VLT_SYNC.pushOnce(hist, "record_save");
+  } catch (e) {
+    console.warn("同期処理に失敗しました:", e);
   }
 
   saveStatus.textContent = `保存しました（${date}）`;
@@ -393,7 +404,9 @@ btnSync.addEventListener("click", async ()=>{
   }
 });
 
-// QR（PCだけ表示。要素が存在しない場合はスキップ）
+/* =========================================
+ * 9. QRコード生成と初期化
+ * ========================================= */
 function renderQR(){
   if (!qrBox || !qrText) return;
   qrBox.innerHTML = "";
@@ -405,7 +418,6 @@ function renderQR(){
 }
 
 
-// record.js の (async () => { ... })(); の中身をこれに差し替え
 (async () => {
   entryDate.value = isoToday();
 

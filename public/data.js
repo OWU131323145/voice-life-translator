@@ -1,3 +1,6 @@
+/* =========================================
+ * 1. データストア・ユーティリティ
+ * ========================================= */
 const HISTORY_KEY = "vlt_history_v5";
 
 function loadHistory() {
@@ -38,7 +41,9 @@ function avg(nums) {
   return v.reduce((a, x) => a + x, 0) / v.length;
 }
 
-// DOM
+/* =========================================
+ * 2. DOM取得と状態管理
+ * ========================================= */
 const btnSync = document.getElementById("btnSync");
 const btnAll = document.getElementById("btnAll");
 const btn90 = document.getElementById("btn90");
@@ -57,6 +62,9 @@ let full = [];
 let view = [];
 let viewDays = 30;
 
+/* =========================================
+ * 3. データ集計とUI更新
+ * ========================================= */
 function applyViewDays(n) {
   viewDays = n;
   if (full.length === 0) {
@@ -107,7 +115,9 @@ async function syncAndReload() {
   applyViewDays(viewDays);
 }
 
-// ---- p5 グラフ（確実描画）----
+/* =========================================
+ * 4. グラフ描画（p5.js）
+ * ========================================= */
 const holder = document.getElementById("p5canvasHolder");
 let sketch = null;
 
@@ -226,7 +236,9 @@ function initP5() {
   });
 }
 
-// events
+/* =========================================
+ * 5. イベントリスナーと初期化
+ * ========================================= */
 btn7.addEventListener("click", () => applyViewDays(7));
 btn30.addEventListener("click", () => applyViewDays(30));
 btn90.addEventListener("click", () => applyViewDays(90));
@@ -242,7 +254,6 @@ btnSync.addEventListener("click", async () => {
   }
 });
 
-// init
 (async () => {
   if (!sketch) initP5();
   await syncAndReload();

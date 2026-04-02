@@ -1,3 +1,6 @@
+/* =========================================
+ * 1. データストア・ユーティリティ
+ * ========================================= */
 const HISTORY_KEY = "vlt_history_v5";
 
 function loadHistory(){ try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");}catch{return[];} }
@@ -9,6 +12,9 @@ function isoDate(d){
   return `${y}-${m}-${day}`;
 }
 
+/* =========================================
+ * 2. DOM取得と状態管理
+ * ========================================= */
 const sleepDate = document.getElementById("sleepDate");
 const btnSync = document.getElementById("btnSync");
 
@@ -25,6 +31,9 @@ let timerId = null;
 let moveCount = 0;
 let lastMoveAt = 0;
 
+/* =========================================
+ * 3. センサー計測ロジック
+ * ========================================= */
 // 閾値（簡易）：大きく動いたら1回
 const THRESHOLD = 14;      // 加速度の目安（環境で差あり）
 const COOLDOWN_MS = 1200;  // 連続カウント抑制
@@ -112,6 +121,9 @@ async function stopAndSave(){
   saveMsg.textContent = `保存しました（${date} / ${sleepHours}h）`;
 }
 
+/* =========================================
+ * 4. イベントリスナーと初期化
+ * ========================================= */
 btnStart.addEventListener("click", async ()=>{
   // iOS向け：許可要求
   if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function"){
@@ -141,7 +153,6 @@ btnSync.addEventListener("click", async ()=>{
   }
 });
 
-// init
 (async ()=>{
   sleepDate.value = isoDate(new Date());
   if (window.VLT_SYNC){

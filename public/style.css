@@ -1,3 +1,6 @@
+/* =========================================
+ * 1. 変数定義（Theme Variables）
+ * ========================================= */
 :root{
   --bg:#F6F7FB;
   --card:#FFFFFF;
@@ -15,6 +18,9 @@
   --shadow-sm:0 8px 18px rgba(15,23,42,0.06);
 }
 
+/* =========================================
+ * 2. ベーススタイル（Base & Reset）
+ * ========================================= */
 *{ margin:0; padding:0; box-sizing:border-box; }
 html,body{ height:100%; }
 body{
@@ -24,13 +30,18 @@ body{
   line-height:1.6;
 }
 
+/* =========================================
+ * 3. 全体コンテナ（Container）
+ * ========================================= */
 .container{
   max-width: 980px;
   margin: 0 auto;
   padding: 18px 14px 30px;
 }
 
-/* Header + Nav */
+/* =========================================
+ * 4. ヘッダー・ナビゲーション（Header & Nav）
+ * ========================================= */
 .header{
   background:var(--card);
   border:1px solid var(--line);
@@ -73,7 +84,9 @@ body{
   border-color: transparent;
 }
 
-/* Panels */
+/* =========================================
+ * 5. パネル・大枠コンポーネント（Panels）
+ * ========================================= */
 .panel{
   background:var(--card);
   border:1px solid var(--line);
@@ -99,14 +112,18 @@ body{
   font-weight:800;
 }
 
-/* Layout helpers */
+/* =========================================
+ * 6. レイアウト補助（Layout Helpers）
+ * ========================================= */
 .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .split{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap:12px; align-items:start; }
 @media (max-width: 900px){
   .split{ grid-template-columns: 1fr; }
 }
 
-/* Inputs */
+/* =========================================
+ * 7. フォーム・入力要素（Inputs & Controls）
+ * ========================================= */
 .input, textarea, select{
   width:100%;
   padding:12px;
@@ -128,7 +145,9 @@ label{ font-size:12px; font-weight:900; color:var(--muted); display:block; margi
   background:#fff;
 }
 
-/* Buttons */
+/* =========================================
+ * 8. ボタン（Buttons）
+ * ========================================= */
 .btn{
   border:none;
   border-radius:var(--radius-sm);
@@ -158,7 +177,9 @@ label{ font-size:12px; font-weight:900; color:var(--muted); display:block; margi
   color:#fff;
 }
 
-/* Badges / Chips */
+/* =========================================
+ * 9. バッジ・チップ（Badges & Chips）
+ * ========================================= */
 .badges{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
 .badge{
   font-size:11px;
@@ -180,7 +201,9 @@ label{ font-size:12px; font-weight:900; color:var(--muted); display:block; margi
   cursor:pointer;
 }
 
-/* Cards */
+/* =========================================
+ * 10. カード（Cards）
+ * ========================================= */
 .card{
   border:1px solid var(--line);
   background:#fff;
@@ -206,7 +229,9 @@ label{ font-size:12px; font-weight:900; color:var(--muted); display:block; margi
   font-weight:800;
 }
 
-/* Loading / Result */
+/* =========================================
+ * 11. ローディング・状態表示（Loading & Results）
+ * ========================================= */
 .loading{
   display:none;
   margin-top:8px;
@@ -224,7 +249,9 @@ label{ font-size:12px; font-weight:900; color:var(--muted); display:block; margi
   font-weight:800;
 }
 
-/* Table calendar base (used by calendar page) */
+/* =========================================
+ * 12. カレンダー（Calendar）
+ * ========================================= */
 table.calendar{ width:100%; border-collapse:separate; border-spacing:8px; }
 table.calendar th{ font-size:12px; color:#475569; text-align:center; font-weight:900; }
 table.calendar td{
@@ -255,7 +282,9 @@ td.selected{ outline: 3px solid rgba(15,23,42,0.35); }
   display:none;
 }
 td.hasData .dot{ display:block; }
-/* PCだけQR表示（スマホでは非表示） */
+/* =========================================
+ * 13. レスポンシブ対応・その他（Responsive）
+ * ========================================= */
 .only-desktop { display:block; }
 @media (max-width: 768px){
   .only-desktop { display:none !important; }

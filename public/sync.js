@@ -1,4 +1,7 @@
 // public/sync.js
+/* =========================================
+ * サーバー同期・リアルタイム通信モジュール
+ * ========================================= */
 window.VLT_SYNC = (() => {
   const HISTORY_KEY = "vlt_history_v5";
   const CODE_KEY = "vlt_sync_code_v5";
@@ -21,10 +24,10 @@ window.VLT_SYNC = (() => {
   }
   function saveHistory(list){ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }
 
-  // sync.js の中
-function mergeById(a=[], b=[]){
-  return [...b].sort((x, y) => (x.savedAt || 0) - (y.savedAt || 0));
-}
+  /* --- ユーティリティ --- */
+  function mergeById(a=[], b=[]){
+    return [...b].sort((x, y) => (x.savedAt || 0) - (y.savedAt || 0));
+  }
 
   function setStatus(s){
     localStorage.setItem(STATUS_KEY, s);
@@ -32,7 +35,7 @@ function mergeById(a=[], b=[]){
     if (el) el.textContent = s;
   }
 
-  // sync.js 内の initFromUrl 関数を以下のように修正
+  /* --- 初期化・設定 --- */
   function initFromUrl(){
     try {
       const u = new URL(location.href);
@@ -46,6 +49,7 @@ function mergeById(a=[], b=[]){
     }
 }
 
+  /* --- API通信・同期処理 --- */
   async function apiDownload(code){
     const res = await fetch(`/sync/${code}`);
     const t = await res.text();
@@ -112,6 +116,7 @@ function mergeById(a=[], b=[]){
     }
   }
 
+  /* --- リアルタイム通信 (SSE) --- */
   function connectSSE(){
     const code = getCode();
     if (!code || code.length < 4) return;
@@ -138,8 +143,8 @@ function mergeById(a=[], b=[]){
     };
   }
 
-  // sync.js の start 関数をこれに差し替え
-function start() {
+  /* --- メイン処理 --- */
+  function start() {
   // 1. URLにコードがあればそれを最優先で保存
   const u = new URL(location.href);
   const urlCode = normalizeCode(u.searchParams.get("code") || "");

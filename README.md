@@ -22,9 +22,10 @@
 
 ## Features
 
-### 音声・テキスト記録
+### 音声・テキスト・写真記録（マルチモーダル）
 
 - Web Speech APIによる音声入力  
+- 写真からの自動抽出（レシート・体温計など）
 - 短いメモでも記録可能  
 - スマートフォン最適UI  
 
@@ -53,6 +54,13 @@
 - 例：  
   - 「最近体調悪い日多い？」  
   - 「支出が多いのはいつ？」  
+
+---
+
+### デバイス間同期（Sync）
+
+- QRコードによるPC・スマホ間の簡単なペアリング
+- Server-Sent Events (SSE) を用いたリアルタイムデータ同期
 
 ---
 
@@ -89,7 +97,7 @@ node server.js
 ### 3. Access
 
 ```text
-http://localhost:8080/quiz.html
+http://localhost:8080/index.html
 ```
 
 ---
@@ -184,6 +192,7 @@ AIの出力は構造化されたJSON形式で扱います。
 | Visualization| p5.js                 |
 | Voice Input  | Web Speech API        |
 | Storage      | localStorage          |
+| Realtime     | Server-Sent Events    |
 
 ---
 
@@ -194,14 +203,12 @@ voice-life-translator/
 ├── server.js
 ├── package.json
 ├── public/
-│   ├── record.html
+│   ├── index.html
 │   ├── calendar.html
 │   ├── chat.html
 │   ├── sleep.html
 │   ├── data.html
 │   ├── style.css
-│   ├── voice.css
-│   ├── record.css
 │   ├── calendar.js
 │   ├── record.js
 │   ├── sleep.js
@@ -240,11 +247,10 @@ voice-life-translator/
 
 ## Future Improvements
 
-- クラウド同期（Firebase等）  
-- 画像認識（レシート・体温計）  
-- 睡眠自動検知（センサー連携）  
+- 外部DBを利用した本格的なクラウドバックアップ機能
 - 週次・月次レポート  
 - 家族共有・見守り機能  
+- PWA化（オフライン動作・アプリインストール対応）
 
 ---
 
